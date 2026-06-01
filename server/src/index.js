@@ -10,7 +10,9 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 4000;
 const frontendOrigins = process.env.FRONTEND_URL
-  ? process.env.FRONTEND_URL.split(',').map((origin) => origin.trim())
+  ? process.env.FRONTEND_URL.split(',')
+      .map((origin) => origin.trim().replace(/\/+$/, ''))
+      .filter(Boolean)
   : true;
 
 app.use(cors({ origin: frontendOrigins }));
