@@ -14,6 +14,10 @@ router.post('/', upload.single('file'), async (req, res, next) => {
 
     const transactions = await parseTransactionFile(req.file);
     const balanceSheet = generateBalanceSheet(transactions);
+    const previewLimit = Number(process.env.PREVIEW_ROW_LIMIT || 5000);
+    const dbTransactionLimit = Number(process.env.DB_TRANSACTION_LIMIT || 2000);
+    const previewTransactions = transactions.slice(0, previewLimit);
+    const shouldPersistTransactions = transactions.length <= dbTransactionLimit;
     const prisma = await getPrisma();
     let savedUpload = null;
 
@@ -24,18 +28,22 @@ router.post('/', upload.single('file'), async (req, res, next) => {
             filename: req.file.originalname,
             mimeType: req.file.mimetype,
             rowCount: transactions.length,
-            transactions: {
-              create: transactions.map((transaction) => ({
-                date: transaction.date ? new Date(transaction.date) : null,
-                description: transaction.description,
-                account: transaction.account,
-                debit: transaction.debit,
-                credit: transaction.credit,
-                category: transaction.category,
-                confidence: transaction.confidence,
-                validationStatus: transaction.validationStatus,
-              })),
-            },
+            ...(shouldPersistTransactions
+              ? {
+                  transactions: {
+                    create: transactions.map((transaction) => ({
+                      date: transaction.date ? new Date(transaction.date) : null,
+                      description: transaction.description,
+                      account: transaction.account,
+                      debit: transaction.debit,
+                      credit: transaction.credit,
+                      category: transaction.category,
+                      confidence: transaction.confidence,
+                      validationStatus: transaction.validationStatus,
+                    })),
+                  },
+                }
+              : {}),
           },
         });
       } catch (dbError) {
@@ -48,8 +56,10 @@ router.post('/', upload.single('file'), async (req, res, next) => {
         id: savedUpload?.id || null,
         filename: req.file.originalname,
         rowCount: transactions.length,
+        previewRowCount: previewTransactions.length,
+        isPreviewTruncated: previewTransactions.length < transactions.length,
       },
-      transactions,
+      transactions: previewTransactions,
       balanceSheet,
     });
   } catch (err) {

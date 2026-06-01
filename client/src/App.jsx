@@ -64,6 +64,7 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const hasResults = transactions.length > 0 && balanceSheet;
+  const processedRowCount = uploadMeta?.rowCount || transactions.length;
   const equation = balanceSheet?.equation;
   const heroMetric = hasResults
     ? equation?.isBalanced
@@ -274,7 +275,7 @@ function App() {
 
         <div className="status-pill">
           <ShieldCheck size={18} />
-          <span>{hasResults ? `${transactions.length} rows processed` : 'Semester Project'}</span>
+          <span>{hasResults ? `${processedRowCount} rows processed` : 'Semester Project'}</span>
         </div>
       </section>
 
@@ -323,7 +324,7 @@ function App() {
           {uploadMeta && (
             <div className="upload-meta">
               <span>{uploadMeta.filename}</span>
-              <strong>{transactions.length} rows</strong>
+              <strong>{processedRowCount} rows</strong>
             </div>
           )}
 
@@ -356,7 +357,7 @@ function App() {
                 </article>
                 <article>
                   <span>Rows processed</span>
-                  <strong>{transactions.length}</strong>
+                  <strong>{processedRowCount}</strong>
                 </article>
                 <article>
                   <span>Current status</span>
@@ -375,6 +376,11 @@ function App() {
                 <div>
                   <p className="section-label">Review</p>
                   <h2>Parsed transactions</h2>
+                  {uploadMeta?.isPreviewTruncated && (
+                    <span className="preview-note">
+                      Showing {uploadMeta.previewRowCount} preview rows from {processedRowCount} processed rows.
+                    </span>
+                  )}
                 </div>
                 {isRecalculating && (
                   <span className="soft-status">

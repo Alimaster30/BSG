@@ -483,6 +483,13 @@ h3 {
   gap: 16px;
 }
 
+.preview-note {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
 .soft-status {
   color: var(--muted);
   font-size: 0.9rem;
