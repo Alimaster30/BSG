@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+const VERCEL_UPLOAD_LIMIT_MB = 4.5;
 
 const currency = new Intl.NumberFormat('en-US', {
   style: 'currency',
@@ -133,6 +134,14 @@ function App() {
     event.preventDefault();
     if (!file) {
       setError('Choose a CSV, Excel, or readable PDF file first.');
+      return;
+    }
+
+    const fileSizeMb = file.size / (1024 * 1024);
+    if (API_URL.includes('vercel.app') && fileSizeMb > VERCEL_UPLOAD_LIMIT_MB) {
+      setError(
+        `This file is ${fileSizeMb.toFixed(1)} MB. Vercel serverless uploads are limited to about ${VERCEL_UPLOAD_LIMIT_MB} MB, so use the Render backend for this dataset.`
+      );
       return;
     }
 
