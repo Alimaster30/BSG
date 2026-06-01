@@ -1,0 +1,43 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AccountCategory {
+  ASSETS
+  LIABILITIES
+  EQUITY
+  REVENUE
+  EXPENSES
+}
+
+model Upload {
+  id           String        @id @default(cuid())
+  filename     String
+  mimeType     String?
+  rowCount      Int
+  createdAt    DateTime      @default(now())
+  transactions Transaction[]
+}
+
+model Transaction {
+  id               String          @id @default(cuid())
+  uploadId         String?
+  upload           Upload?         @relation(fields: [uploadId], references: [id], onDelete: Cascade)
+  date             DateTime?
+  description      String
+  account          String
+  debit            Decimal         @default(0) @db.Decimal(14, 2)
+  credit           Decimal         @default(0) @db.Decimal(14, 2)
+  category         AccountCategory
+  confidence       Float           @default(0)
+  validationStatus String
+  createdAt        DateTime        @default(now())
+
+  @@index([uploadId])
+  @@index([category])
+}
