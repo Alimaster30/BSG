@@ -14,7 +14,7 @@ router.post('/', upload.single('file'), async (req, res, next) => {
 
     const transactions = await parseTransactionFile(req.file);
     const balanceSheet = generateBalanceSheet(transactions);
-    const prisma = getPrisma();
+    const prisma = await getPrisma();
     let savedUpload = null;
 
     if (prisma) {
