@@ -55,6 +55,7 @@ function App() {
   const [isUploading, setIsUploading] = useState(false);
   const [isRecalculating, setIsRecalculating] = useState(false);
   const [exporting, setExporting] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const hasResults = transactions.length > 0 && balanceSheet;
   const equation = balanceSheet?.equation;
@@ -68,6 +69,43 @@ function App() {
       ? 'Total assets'
       : 'Balance difference'
     : 'Awaiting dataset';
+  const normalizedSearch = searchQuery.trim().toLowerCase();
+  const filteredTransactions = useMemo(() => {
+    if (!normalizedSearch) {
+      return transactions;
+    }
+
+    return transactions.filter((transaction) =>
+      [
+        transaction.date,
+        transaction.description,
+        transaction.account,
+        transaction.category,
+        transaction.validationStatus,
+      ]
+        .join(' ')
+        .toLowerCase()
+        .includes(normalizedSearch)
+    );
+  }, [normalizedSearch, transactions]);
+
+  const filteredBalanceSheet = useMemo(() => {
+    if (!balanceSheet || !normalizedSearch) {
+      return balanceSheet;
+    }
+
+    const matches = (item) =>
+      `${item.account} ${item.balance}`.toLowerCase().includes(normalizedSearch);
+
+    return {
+      ...balanceSheet,
+      assets: balanceSheet.assets.filter(matches),
+      liabilities: balanceSheet.liabilities.filter(matches),
+      equity: balanceSheet.equity.filter(matches),
+      revenue: balanceSheet.revenue.filter(matches),
+      expenses: balanceSheet.expenses.filter(matches),
+    };
+  }, [balanceSheet, normalizedSearch]);
 
   const reviewStats = useMemo(() => {
     const reviewCount = transactions.filter((transaction) =>
@@ -145,8 +183,13 @@ function App() {
   }
 
   function updateTransactionCategory(index, category) {
-    const nextTransactions = transactions.map((transaction, currentIndex) =>
-      currentIndex === index ? { ...transaction, category, validationStatus: 'Ready: manually classified' } : transaction
+    const target = filteredTransactions[index];
+    if (!target) return;
+
+    const nextTransactions = transactions.map((transaction) =>
+      transaction.rowNumber === target.rowNumber
+        ? { ...transaction, category, validationStatus: 'Ready: manually classified' }
+        : transaction
     );
     setTransactions(nextTransactions);
     recalculateBalanceSheet(nextTransactions);
@@ -205,10 +248,15 @@ function App() {
           })}
         </nav>
 
-        <div className="search-pill">
+        <label className="search-pill">
           <Search size={17} />
-          <span>{uploadMeta?.filename || 'Search client, account, or file...'}</span>
-        </div>
+          <input
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            placeholder={uploadMeta?.filename ? 'Search account, class, status, date...' : 'Search after upload...'}
+            aria-label="Search transactions and accounts"
+          />
+        </label>
 
         <div className="status-pill">
           <ShieldCheck size={18} />
@@ -331,19 +379,20 @@ function App() {
                   </strong>
                 </article>
                 <article>
-                  <span>Needs review</span>
-                  <strong>{reviewStats.review}</strong>
+                  <span>Search results</span>
+                  <strong>{filteredTransactions.length}</strong>
                 </article>
                 <article>
-                  <span>Normalized</span>
-                  <strong>{reviewStats.normalized}</strong>
+                  <span>Needs review</span>
+                  <strong>{reviewStats.review}</strong>
                 </article>
               </div>
 
               <TransactionTable
-                transactions={transactions}
+                transactions={filteredTransactions}
                 onCategoryChange={updateTransactionCategory}
                 editable
+                searchQuery={searchQuery}
               />
             </section>
           )}
@@ -373,7 +422,7 @@ function App() {
                 </div>
               )}
 
-              <BalanceSheetPanel balanceSheet={balanceSheet} />
+              <BalanceSheetPanel balanceSheet={filteredBalanceSheet} searchQuery={searchQuery} />
             </section>
           )}
 
@@ -492,9 +541,14 @@ function LedgerChart({ balanceSheet }) {
   );
 }
 
-function BalanceSheetPanel({ balanceSheet }) {
+function BalanceSheetPanel({ balanceSheet, searchQuery = '' }) {
   return (
     <section className="balance-sheet-panel">
+      {searchQuery && (
+        <div className="filter-note">
+          Showing account breakdown matches for <strong>{searchQuery}</strong>
+        </div>
+      )}
       <div className="statement-grid">
         {statementGroups.map((group) => {
           const rows = balanceSheet[group.key] || [];
@@ -541,7 +595,7 @@ function BalanceSheetPanel({ balanceSheet }) {
   );
 }
 
-function TransactionTable({ transactions, onCategoryChange, editable = false }) {
+function TransactionTable({ transactions, onCategoryChange, editable = false, searchQuery = '' }) {
   return (
     <div className="table-wrap">
       <table>
@@ -560,7 +614,7 @@ function TransactionTable({ transactions, onCategoryChange, editable = false }) 
           {transactions.length === 0 ? (
             <tr>
               <td colSpan="7" className="empty-cell">
-                Waiting for a transaction file.
+                {searchQuery ? `No transactions match "${searchQuery}".` : 'Waiting for a transaction file.'}
               </td>
             </tr>
           ) : (

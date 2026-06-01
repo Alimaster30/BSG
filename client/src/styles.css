@@ -144,6 +144,19 @@ button:disabled {
   font-weight: 400;
 }
 
+.search-pill input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+}
+
+.search-pill input::placeholder {
+  color: var(--muted);
+}
+
 .status-pill {
   justify-content: center;
   min-height: 42px;
@@ -553,6 +566,17 @@ h3 {
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.56);
   overflow: hidden;
+}
+
+.filter-note {
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.filter-note strong {
+  color: var(--ink);
 }
 
 .statement-grid {
