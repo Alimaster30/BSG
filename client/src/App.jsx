@@ -16,7 +16,12 @@ import {
   UploadCloud,
 } from 'lucide-react';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+const DEFAULT_API_URL =
+  typeof window !== 'undefined' && window.location.hostname === 'localhost'
+    ? 'http://localhost:4000'
+    : 'https://bsg-hl6m.onrender.com';
+
+const API_URL = import.meta.env.VITE_API_URL || DEFAULT_API_URL;
 const VERCEL_UPLOAD_LIMIT_MB = 4.5;
 
 const currency = new Intl.NumberFormat('en-US', {
