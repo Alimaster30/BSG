@@ -16,6 +16,15 @@ const frontendOrigins = process.env.FRONTEND_URL
 app.use(cors({ origin: frontendOrigins }));
 app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || '75mb' }));
 
+app.get('/', (_req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'smart-balance-sheet-api',
+    message: 'Ledgerix Smart Balance Sheet API is running.',
+    routes: ['/health', '/api/uploads', '/api/balance-sheet', '/api/reports/pdf', '/api/reports/excel'],
+  });
+});
+
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', service: 'smart-balance-sheet-api' });
 });
