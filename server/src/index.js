@@ -37,6 +37,10 @@ app.use((err, _req, res, _next) => {
   });
 });
 
-app.listen(port, () => {
-  console.log(`Smart Balance Sheet API running on port ${port}`);
-});
+if (!process.env.VERCEL) {
+  app.listen(port, () => {
+    console.log(`Smart Balance Sheet API running on port ${port}`);
+  });
+}
+
+export default app;

@@ -83,6 +83,16 @@ A small demo file is included at `samples/transactions.csv`.
 3. Add `VITE_API_URL` with the deployed Render backend URL.
 4. Deploy.
 
+### Backend on Vercel
+
+If deploying the backend on Vercel instead of Render:
+
+1. Create a second Vercel project from this repository.
+2. Use `server` as the root directory.
+3. Add the backend environment variables from the section below.
+4. Deploy.
+5. Use the backend Vercel URL as `VITE_API_URL` in the frontend Vercel project.
+
 ## Production Environment Variables
 
 Render backend:
@@ -100,6 +110,17 @@ Vercel frontend:
 
 ```env
 VITE_API_URL=https://your-render-service.onrender.com
+```
+
+Vercel backend:
+
+```env
+NODE_ENV=production
+DATABASE_URL=postgresql://USER:PASSWORD@HOST.neon.tech/smart_balance_sheet?sslmode=require
+FRONTEND_URL=https://your-frontend.vercel.app
+MAX_UPLOAD_MB=25
+MAX_PARSE_ROWS=100000
+JSON_BODY_LIMIT=75mb
 ```
 
 ## Main API Routes
